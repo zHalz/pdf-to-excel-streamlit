@@ -1,8 +1,8 @@
 import streamlit as st
 from pipeline import processar_arquivo
 
-def executar_folha_analitica():
 
+def executar_folha_analitica():
     # -------------------------------
     # HEADER
     # -------------------------------
@@ -80,49 +80,83 @@ def executar_folha_analitica():
 
                     if col2.button("Processar", key=f"process_{file.name}"):
 
-                        with st.spinner("🔄 Processando arquivo... isso pode levar alguns segundos"):
+                        status_text = st.empty()
+                        progress_bar = st.progress(0)
 
-                            try:
-                                excel, resumo = processar_arquivo(file)
+                        try:
+                            excel, resumo = processar_arquivo(
+                                file,
+                                progress_bar=progress_bar,
+                                status_text=status_text
+                            )
 
-                                if excel is None:
-                                    st.error("⚠️ Não foi possível extrair dados desse PDF.")
-                                else:
+                            progress_bar.empty()
+                            status_text.empty()
 
-                                    # salva na sessão
-                                    st.session_state.arquivos_processados[file.name] = {
-                                        "file": excel,
-                                        "resumo": resumo
-                                    }
+                            if excel is None:
+                                st.error("⚠️ Não foi possível extrair dados desse PDF.")
+                            else:
 
-                                    # adiciona histórico
-                                    st.session_state.historico.append({
-                                        "arquivo": file.name,
-                                        "registros": resumo["registros"],
-                                        "colaboradores": resumo["colaboradores"]
-                                    })
+                                st.success("✅ Processamento concluído!")
 
-                                    st.rerun()
+                                # salva na sessão
+                                st.session_state.arquivos_processados[file.name] = {
+                                    "file": excel,
+                                    "resumo": resumo
+                                }
 
-                            except Exception as e:
-                                st.error(f"Erro: {str(e)}")
+                                # adiciona histórico
+                                st.session_state.historico.append({
+                                    "arquivo": file.name,
+                                    "registros": resumo["registros"],
+                                    "colaboradores": resumo["colaboradores"]
+                                })
 
-    # -------------------------------
-    # HISTÓRICO
-    # -------------------------------
-    with col_hist:
+                                st.rerun()
 
-        st.subheader("📋 Histórico de Processamentos")
+                        except Exception as e:
+                            progress_bar.empty()
+                            status_text.empty()
+                            st.error(f"Erro: {str(e)}")
 
-        if st.session_state.historico:
+                            if excel is None:
+                                st.error("⚠️ Não foi possível extrair dados desse PDF.")
+                            else:
 
-            df_hist = st.session_state.historico[::-1]  # mais recente primeiro
+                                # salva na sessão
+                                st.session_state.arquivos_processados[file.name] = {
+                                    "file": excel,
+                                    "resumo": resumo
+                                }
 
-            st.dataframe(
-                df_hist,
-                use_container_width=True,
-                hide_index=True
-            )
+                                # adiciona histórico
+                                st.session_state.historico.append({
+                                    "arquivo": file.name,
+                                    "registros": resumo["registros"],
+                                    "colaboradores": resumo["colaboradores"]
+                                })
 
-        else:
-            st.caption("Ainda não há processamentos.")
+                                st.rerun()
+
+                        except Exception as e:
+                            st.error(f"Erro: {str(e)}")
+
+
+# -------------------------------
+# HISTÓRICO
+# -------------------------------
+with col_hist:
+    st.subheader("📋 Histórico de Processamentos")
+
+    if st.session_state.historico:
+
+        df_hist = st.session_state.historico[::-1]  # mais recente primeiro
+
+        st.dataframe(
+            df_hist,
+            use_container_width=True,
+            hide_index=True
+        )
+
+    else:
+        st.caption("Ainda não há processamentos.")

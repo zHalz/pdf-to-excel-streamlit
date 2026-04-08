@@ -4,7 +4,7 @@ import re
 import tempfile
 
 
-def extract_pdf_data(file):
+def extract_pdf_data(file, progress_bar=None, status_text=None):
     """
     Extrai dados de um PDF completo e retorna um DataFrame consolidado
     """
@@ -19,6 +19,15 @@ def extract_pdf_data(file):
         total_paginas = len(pdf.pages)
 
         for page_num, page in enumerate(pdf.pages):
+
+            # ✅ PROGRESSO
+            if progress_bar:
+                progress_bar.progress((page_num + 1) / total_paginas)
+
+            if status_text:
+                status_text.markdown(
+                    f"📄 Processando página {page_num + 1} de {total_paginas}"
+                )
 
             texto = (
                 page.extract_text()
