@@ -3,6 +3,7 @@ from pipeline import processar_arquivo
 
 
 def executar_folha_analitica():
+
     # -------------------------------
     # HEADER
     # -------------------------------
@@ -38,7 +39,6 @@ def executar_folha_analitica():
         )
 
         if uploaded_files:
-
             for file in uploaded_files:
 
                 col1, col2, col3 = st.columns([4, 1, 1])
@@ -96,7 +96,6 @@ def executar_folha_analitica():
                             if excel is None:
                                 st.error("⚠️ Não foi possível extrair dados desse PDF.")
                             else:
-
                                 st.success("✅ Processamento concluído!")
 
                                 # salva na sessão
@@ -119,44 +118,22 @@ def executar_folha_analitica():
                             status_text.empty()
                             st.error(f"Erro: {str(e)}")
 
-                            if excel is None:
-                                st.error("⚠️ Não foi possível extrair dados desse PDF.")
-                            else:
+    # -------------------------------
+    # HISTÓRICO (CORRIGIDO - DENTRO DA FUNÇÃO)
+    # -------------------------------
+    with col_hist:
 
-                                # salva na sessão
-                                st.session_state.arquivos_processados[file.name] = {
-                                    "file": excel,
-                                    "resumo": resumo
-                                }
+        st.subheader("📋 Histórico de Processamentos")
 
-                                # adiciona histórico
-                                st.session_state.historico.append({
-                                    "arquivo": file.name,
-                                    "registros": resumo["registros"],
-                                    "colaboradores": resumo["colaboradores"]
-                                })
+        if st.session_state.historico:
 
-                                st.rerun()
+            df_hist = st.session_state.historico[::-1]
 
-                        except Exception as e:
-                            st.error(f"Erro: {str(e)}")
+            st.dataframe(
+                df_hist,
+                use_container_width=True,
+                hide_index=True
+            )
 
-
-# -------------------------------
-# HISTÓRICO
-# -------------------------------
-with col_hist:
-    st.subheader("📋 Histórico de Processamentos")
-
-    if st.session_state.historico:
-
-        df_hist = st.session_state.historico[::-1]  # mais recente primeiro
-
-        st.dataframe(
-            df_hist,
-            use_container_width=True,
-            hide_index=True
-        )
-
-    else:
-        st.caption("Ainda não há processamentos.")
+        else:
+            st.caption("Ainda não há processamentos.")
