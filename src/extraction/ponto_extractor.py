@@ -95,7 +95,7 @@ def eh_cabecalho_correto(header):
 # EXTRAÇÃO PRINCIPAL
 # =============================
 
-def extrair_ponto_pdf(file):
+def extrair_ponto_pdf(file, progress_bar=None, status_text=None):
 
     todos_registros = []
     cabecalho_final = None
@@ -107,7 +107,17 @@ def extrair_ponto_pdf(file):
 
     with pdfplumber.open(pdf_path) as pdf:
 
-        for page in pdf.pages:
+        total_paginas = len(pdf.pages)
+
+        for i, page in enumerate(pdf.pages):
+
+            if progress_bar:
+                progress_bar.progress((i + 1) / total_paginas)
+
+            if status_text:
+                status_text.markdown(
+                    f"📄 Processando página {i + 1} de {total_paginas}"
+                )
 
             texto = page.extract_text() or ""
 

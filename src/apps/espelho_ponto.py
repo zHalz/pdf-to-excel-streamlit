@@ -3,7 +3,6 @@ from pipeline_ponto import processar_ponto_arquivo
 
 
 def executar_espelho_ponto():
-
     # -------------------------------
     # HEADER
     # -------------------------------
@@ -81,34 +80,43 @@ def executar_espelho_ponto():
 
                     if col2.button("Processar", key=f"process_ponto_{file.name}"):
 
-                        with st.spinner("🔄 Processando ponto..."):
+                        status_text = st.empty()
+                        progress_bar = st.progress(0)
 
-                            try:
-                                excel, resumo = processar_ponto_arquivo(file)
+                        try:
+                            excel, resumo = processar_ponto_arquivo(
+                                file,
+                                progress_bar=progress_bar,
+                                status_text=status_text
+                            )
 
-                                if excel is None:
-                                    st.error("⚠️ Não foi possível extrair dados desse PDF.")
-                                else:
+                            progress_bar.empty()
+                            status_text.empty()
 
-                                    st.success("✅ Processamento concluído!")
+                            if excel is None:
+                                st.error("⚠️ Não foi possível extrair dados desse PDF.")
+                            else:
+                                st.success("✅ Processamento concluído!")
 
-                                    # salva na sessão
-                                    st.session_state.arquivos_processados_ponto[file.name] = {
-                                        "file": excel,
-                                        "resumo": resumo
-                                    }
+                                # salva na sessão
+                                st.session_state.arquivos_processados_ponto[file.name] = {
+                                    "file": excel,
+                                    "resumo": resumo
+                                }
 
-                                    # histórico
-                                    st.session_state.historico_ponto.append({
-                                        "arquivo": file.name,
-                                        "registros": resumo["registros"],
-                                        "colaboradores": resumo["colaboradores"]
-                                    })
+                                # histórico
+                                st.session_state.historico_ponto.append({
+                                    "arquivo": file.name,
+                                    "registros": resumo["registros"],
+                                    "colaboradores": resumo["colaboradores"]
+                                })
 
-                                    st.rerun()
+                                st.rerun()
 
-                            except Exception as e:
-                                st.error(f"❌ Erro ao processar: {str(e)}")
+                        except Exception as e:
+                            progress_bar.empty()
+                            status_text.empty()
+                            st.error("❌ Erro ao processar o arquivo.")
 
     # -------------------------------
     # HISTÓRICO
